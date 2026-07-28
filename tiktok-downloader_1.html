@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snip — Download Video TikTok Tanpa Watermark</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+
+  :root{
+    --bg:#0b0b0d;
+    --panel:#141417;
+    --panel-2:#1b1b20;
+    --line:#2a2a30;
+    --text:#f2f2f0;
+    --muted:#8b8b93;
+    --cyan:#25f4ee;
+    --pink:#fe2c55;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:64px 20px 80px;
+  }
+
+  .wordmark{
+    position:relative;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:44px;
+    letter-spacing:-0.02em;
+    color:var(--text);
+    margin:0 0 6px;
+  }
+  .wordmark::before,.wordmark::after{
+    content:'Snip';
+    position:absolute;
+    left:0; top:0;
+    mix-blend-mode:screen;
+  }
+  .wordmark::before{ color:var(--cyan); transform:translate(-2px,-1.5px); }
+  .wordmark::after{ color:var(--pink); transform:translate(2px,1.5px); }
+
+  .tag{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 44px;
+  }
+
+  form{
+    width:100%;
+    max-width:600px;
+    display:flex;
+    gap:10px;
+  }
+  input[type=url]{
+    flex:1;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    color:var(--text);
+    font-size:15px;
+    padding:0 16px;
+    height:52px;
+    outline:none;
+    transition:border-color .15s;
+  }
+  input[type=url]::placeholder{ color:var(--muted); }
+  input[type=url]:focus{ border-color:var(--cyan); }
+
+  button.go{
+    height:52px;
+    padding:0 26px;
+    border:none;
+    border-radius:10px;
+    background:linear-gradient(90deg,var(--pink),var(--cyan));
+    color:#0b0b0d;
+    font-weight:600;
+    font-size:15px;
+    cursor:pointer;
+    transition:opacity .15s, transform .1s;
+    white-space:nowrap;
+  }
+  button.go:hover{ opacity:.9; }
+  button.go:active{ transform:scale(0.98); }
+  button.go:disabled{ opacity:.5; cursor:default; }
+
+  .hint{
+    max-width:600px;
+    width:100%;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--muted);
+    margin-top:10px;
+  }
+
+  .status{
+    max-width:600px;
+    width:100%;
+    margin-top:24px;
+    font-size:14px;
+    color:var(--muted);
+    display:none;
+    align-items:center;
+    gap:10px;
+  }
+  .status.show{ display:flex; }
+  .spin{
+    width:14px; height:14px;
+    border-radius:50%;
+    border:2px solid var(--line);
+    border-top-color:var(--cyan);
+    animation:sp .7s linear infinite;
+    flex-shrink:0;
+  }
+  @keyframes sp{ to{ transform:rotate(360deg); } }
+
+  .error{
+    max-width:600px;
+    width:100%;
+    margin-top:24px;
+    padding:14px 16px;
+    border-radius:10px;
+    background:rgba(254,44,85,0.08);
+    border:1px solid rgba(254,44,85,0.35);
+    color:#ff8fa3;
+    font-size:14px;
+    display:none;
+  }
+  .error.show{ display:block; }
+
+  .card{
+    max-width:600px;
+    width:100%;
+    margin-top:28px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:20px;
+    display:none;
+  }
+  .card.show{ display:block; }
+
+  .meta{
+    display:flex;
+    gap:14px;
+  }
+  .meta img{
+    width:76px;
+    height:100px;
+    object-fit:cover;
+    border-radius:8px;
+    background:var(--panel-2);
+    flex-shrink:0;
+  }
+  .meta-text{ min-width:0; }
+  .meta-text .title{
+    font-size:14px;
+    line-height:1.45;
+    margin:0 0 8px;
+    display:-webkit-box;
+    -webkit-line-clamp:3;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  .meta-text .author{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--cyan);
+    margin:0 0 4px;
+  }
+  .meta-text .stats{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--muted);
+    display:flex;
+    gap:12px;
+  }
+
+  .downloads{
+    margin-top:18px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .dl{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:12px 14px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    background:var(--panel-2);
+    text-decoration:none;
+    color:var(--text);
+    transition:border-color .15s;
+  }
+  .dl:hover{ border-color:var(--cyan); }
+  .dl .label{ display:flex; flex-direction:column; gap:2px; }
+  .dl .label .l1{ font-size:13px; font-weight:600; }
+  .dl .label .l2{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted); }
+  .dl .arrow{ font-family:'IBM Plex Mono',monospace; font-size:16px; color:var(--cyan); }
+
+  .again{
+    display:block;
+    margin:16px auto 0;
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:13px;
+    cursor:pointer;
+    text-decoration:underline;
+  }
+
+  footer{
+    margin-top:64px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--muted);
+    text-align:center;
+    max-width:600px;
+    line-height:1.6;
+  }
+</style>
+</head>
+<body>
+
+  <h1 class="wordmark" aria-label="Snip">Snip</h1>
+  <p class="tag">tiktok video downloader — no watermark</p>
+
+  <form id="form">
+    <input type="url" id="urlInput" placeholder="Tempel link video TikTok di sini..." required autocomplete="off">
+    <button type="submit" class="go" id="goBtn">Ambil video</button>
+  </form>
+  <p class="hint">Contoh: https://www.tiktok.com/@user/video/1234567890 atau link vt.tiktok.com</p>
+
+  <div class="status" id="status"><div class="spin"></div><span id="statusText">Memproses link...</span></div>
+  <div class="error" id="error"></div>
+
+  <div class="card" id="card">
+    <div class="meta">
+      <img id="cover" alt="Sampul video">
+      <div class="meta-text">
+        <p class="title" id="title"></p>
+        <p class="author" id="author"></p>
+        <div class="stats" id="stats"></div>
+      </div>
+    </div>
+    <div class="downloads" id="downloads"></div>
+    <button class="again" id="again">Download video lain</button>
+  </div>
+
+  <footer>
+    Snip memproses link secara langsung di browser kamu. Kami tidak menyimpan video atau riwayat unduhan.<br>
+    Tidak berafiliasi dengan TikTok atau ByteDance.
+  </footer>
+
+<script>
+const form = document.getElementById('form');
+const urlInput = document.getElementById('urlInput');
+const goBtn = document.getElementById('goBtn');
+const status = document.getElementById('status');
+const statusText = document.getElementById('statusText');
+const errorBox = document.getElementById('error');
+const card = document.getElementById('card');
+const again = document.getElementById('again');
+
+function fmt(n){
+  if(n === undefined || n === null) return '0';
+  if(n >= 1e6) return (n/1e6).toFixed(1) + 'jt';
+  if(n >= 1e3) return (n/1e3).toFixed(1) + 'rb';
+  return String(n);
+}
+
+function reset(){
+  card.classList.remove('show');
+  errorBox.classList.remove('show');
+  status.classList.remove('show');
+  urlInput.value = '';
+  urlInput.focus();
+}
+again.addEventListener('click', reset);
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const url = urlInput.value.trim();
+  if(!url) return;
+
+  errorBox.classList.remove('show');
+  card.classList.remove('show');
+  status.classList.add('show');
+  statusText.textContent = 'Mengambil data video...';
+  goBtn.disabled = true;
+
+  try{
+    const api = 'https://www.tikwm.com/api/?url=' + encodeURIComponent(url) + '&hd=1';
+    const res = await fetch(api);
+    if(!res.ok) throw new Error('Server sedang sibuk, coba lagi.');
+    const json = await res.json();
+
+    if(json.code !== 0 || !json.data){
+      throw new Error(json.msg || 'Link tidak valid atau video tidak ditemukan.');
+    }
+
+    const d = json.data;
+    document.getElementById('cover').src = d.cover || d.origin_cover || '';
+    document.getElementById('title').textContent = d.title || '(tanpa judul)';
+    document.getElementById('author').textContent = '@' + (d.author?.unique_id || d.author?.nickname || 'unknown');
+    document.getElementById('stats').innerHTML =
+      '<span>▶ ' + fmt(d.play_count) + '</span><span>♥ ' + fmt(d.digg_count) + '</span><span>↻ ' + fmt(d.share_count) + '</span>';
+
+    const dlWrap = document.getElementById('downloads');
+    dlWrap.innerHTML = '';
+
+    const vid = d.id || Date.now();
+    const options = [];
+    if(d.hdplay) options.push({label:'Video HD', sub:'Tanpa watermark · kualitas tinggi', href:d.hdplay, file:'tiktok-' + vid + '-hd.mp4'});
+    if(d.play) options.push({label:'Video standar', sub:'Tanpa watermark', href:d.play, file:'tiktok-' + vid + '.mp4'});
+    if(d.wmplay) options.push({label:'Video dengan watermark', sub:'Versi asli TikTok', href:d.wmplay, file:'tiktok-' + vid + '-wm.mp4'});
+    if(d.music) options.push({label:'Audio (MP3)', sub:'Suara asli dari video', href:d.music, file:'tiktok-' + vid + '.mp3'});
+
+    if(options.length === 0){
+      throw new Error('Tidak ada link unduhan yang tersedia untuk video ini.');
+    }
+
+    options.forEach(o => {
+      const a = document.createElement('a');
+      a.className = 'dl';
+      a.href = o.href;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.download = o.file;
+      a.innerHTML = '<span class="label"><span class="l1">' + o.label + '</span><span class="l2">' + o.sub + '</span></span><span class="arrow">↓</span>';
+      dlWrap.appendChild(a);
+    });
+
+    status.classList.remove('show');
+    card.classList.add('show');
+  }catch(err){
+    status.classList.remove('show');
+    errorBox.textContent = err.message || 'Terjadi kesalahan. Pastikan link TikTok kamu valid.';
+    errorBox.classList.add('show');
+  }finally{
+    goBtn.disabled = false;
+  }
+});
+</script>
+
+</body>
+</html>
