@@ -303,13 +303,34 @@ form.addEventListener('submit', async (e) => {
   goBtn.disabled = true;
 
   try{
-    const api = 'https://www.tikwm.com/api/?url=' + encodeURIComponent(url) + '&hd=1';
-    const res = await fetch(api);
-    if(!res.ok) throw new Error('Server sedang sibuk, coba lagi.');
-    const json = await res.json();
+    async function tryFetch(apiUrl){
+      const res = await fetch(apiUrl);
+      if(!res.ok) throw new Error('http');
+      return res.json();
+    }
+
+    const base = 'https://www.tikwm.com/api/?url=' + encodeURIComponent(url);
+    let json;
+    try{
+      json = await tryFetch(base + '&hd=1');
+      if(json.code !== 0) throw new Error('parse1');
+    }catch(e1){
+      statusText.textContent = 'Mencoba metode lain...';
+      try{
+        json = await tryFetch(base);
+        if(json.code !== 0) throw new Error('parse2');
+      }catch(e2){
+        await new Promise(r => setTimeout(r, 900));
+        json = await tryFetch(base + '&hd=1');
+      }
+    }
 
     if(json.code !== 0 || !json.data){
-      throw new Error(json.msg || 'Link tidak valid atau video tidak ditemukan.');
+      throw new Error(
+        'Link tidak bisa dibaca oleh server (' + (json.msg || 'unknown') + '). ' +
+        'Coba: (1) buka link videonya dulu di TikTok lalu salin ulang link dari tombol Bagikan, ' +
+        'atau (2) tunggu sebentar lalu coba lagi — server API sedang sibuk.'
+      );
     }
 
     const d = json.data;
